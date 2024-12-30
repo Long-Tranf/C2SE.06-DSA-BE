@@ -10,10 +10,9 @@ use Laravel\Sanctum\HasApiTokens;
 class Association extends Authenticatable
 {
     use HasFactory, HasApiTokens, Notifiable;
-
+    protected $table = 'associations';
 
     protected $fillable = [
-
         'user_name',
         'password',
         'company_email',
@@ -37,6 +36,6 @@ class Association extends Authenticatable
 
     public function events()
     {
-        return $this->hasMany(Events::class, 'organizer_id', 'id'); // 'organizer_id' là khóa ngoại trong bảng events
+        return $this->hasMany(Events::class, 'organizer_id', 'id');
     }
 }

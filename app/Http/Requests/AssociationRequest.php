@@ -22,11 +22,11 @@ class AssociationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_name'                  => 'required|min:5|alpha_num|unique:users,username',
+            'user_name'                  => 'required|min:5|unique:associations,user_name',
             'password'                  => 'required|min:8|regex:/[0-9]/',
-            'company_email'             => 'required|email|unique:companies,email',
+            'company_email'             => 'required|email|email',
             'registrant_name'           => 'required|string|max:255',
-            'subscriber_email'          => 'required|email|unique:subscribers,email',
+            'subscriber_email'          => 'required|email|email',
             'phone_number'              => 'required|numeric',
             'registered_phone_number'   => 'required|numeric',
             'address'                   => 'required|string|max:255',

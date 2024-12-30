@@ -23,10 +23,10 @@ class PostRequest extends FormRequest
     {
         return [
             'category_id' => 'required|exists:categories,id', // Kiểm tra xem ID danh mục có tồn tại trong bảng categories
-            'member_id' => 'required|exists:members,id', // Kiểm tra xem ID thành viên có tồn tại trong bảng members
+            'member_id' => 'required|exists:associations,id', // Kiểm tra xem ID thành viên có tồn tại trong bảng members
             'title' => 'required|string|max:255', // Tiêu đề là bắt buộc, phải là chuỗi và không vượt quá 255 ký tự
             'content' => 'required|string|min:10', // Nội dung là bắt buộc, phải là chuỗi và tối thiểu 10 ký tự
-            // 'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Kiểm tra định dạng hình ảnh và kích thước tối đa 2MB
+            //'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Kiểm tra định dạng hình ảnh và kích thước tối đa 2MB
             'is_open' => 'required|boolean', // Trạng thái mở là bắt buộc và phải là true hoặc false
         ];
     }
@@ -34,7 +34,7 @@ class PostRequest extends FormRequest
     public function messages()
     {
         return [
-            'category_id.required' => 'ID danh mục là bắt buộc.',
+            'category_id.required' => 'Danh mục là bắt buộc.',
             'category_id.exists' => 'ID danh mục không tồn tại.',
 
             'member_id.required' => 'ID thành viên là bắt buộc.',
@@ -48,7 +48,7 @@ class PostRequest extends FormRequest
             'content.string' => 'Nội dung phải là chuỗi ký tự.',
             'content.min' => 'Nội dung phải có ít nhất 10 ký tự.',
 
-            // 'image.required' => 'Hình ảnh là bắt buộc.',
+            'image.required' => 'Hình ảnh là bắt buộc.',
             // 'image.image' => 'Trường này phải là một hình ảnh.',
             // 'image.mimes' => 'Hình ảnh phải có định dạng: jpeg, png, jpg, gif.',
             // 'image.max' => 'Hình ảnh không được vượt quá 2MB.',

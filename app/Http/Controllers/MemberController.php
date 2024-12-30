@@ -3,6 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\MemberRequest;
+use App\Http\Requests\RegisterMemberRequest;
+use App\Http\Requests\UpdateMemberRequest;
+use App\Http\Requests\ChangePasswordRequest;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+
+
 use App\Models\Member;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -23,12 +30,38 @@ class MemberController extends Controller
     public function store(MemberRequest $request)
     {
         $data   =   $request->all();
-        Member::create($data);
+        
+        if ($request->has('password')) {
+            $data['password'] = bcrypt($request->password);
+        }
 
+        if ($request->hasFile('avatar')) {
+            $file = $request->file('avatar');
+            $filePath = $file->store('avatars', 'public');
+            $data['avatar'] = $filePath;
+        }
+        
+        Member::create($data);
         return response()->json([
             'status'    =>  true,
             'message'   =>  'Đã tạo mới thành viên thành công!'
         ]);
+    }
+    public function updateMember(UpdateMemberRequest $request, $id)
+    {
+        $member = Member::findOrFail($id);
+        $member->user_name = $request->user_name;
+        // if ($request->filled('password')) {
+        //     $member->password = bcrypt($request->password);
+        // }
+        //$member->avatar = $request->avatar;
+        $member->full_name = $request->full_name;
+        $member->subscriber_email = $request->subscriber_email;
+        $member->phone_number = $request->phone_number;
+        $member->address = $request->address;
+        //$member->is_open = $request->is_open;
+        $member->save();
+        return response()->json(['message' => 'Cập nhật thành công', 'member' => $member]);
     }
     public function destroy($id)
     {
@@ -48,8 +81,18 @@ class MemberController extends Controller
             'message'   =>  'Đã cập nhật thành viên thành công!'
         ]);
     }
+    public function getTotalMembers()
+    {
+        $totalMembers = Member::count();
 
-    public function dangKy(Request $request)
+        return response()->json([
+            'status' => true,
+            'total_members' => $totalMembers,
+            'message' => 'Tổng số lượng thành viên'
+        ]);
+    }
+
+    public function dangKy(RegisterMemberRequest $request)
     {
         $check_mail = Member::where('user_name', $request->user_name)->first();
         if ($check_mail) {
@@ -72,12 +115,12 @@ class MemberController extends Controller
         $check  = Auth::guard('member')->attempt(['user_name' => $request->user_name, 'password' =>  $request->password]);
         if ($check) {
             $user =  Auth::guard('member')->user();
-            if ($user->is_block) {
-                return response()->json([
-                    'status'    =>  false,
-                    'message'   =>  'Tài khoản của bạn đã bị khoá!'
-                ]);
-            }
+            // if ($user->is_block) {
+            //     return response()->json([
+            //         'status'    =>  false,
+            //         'message'   =>  'Tài khoản của bạn đã bị khoá!'
+            //     ]);
+            // }
             if ($user->is_open) {
                 return response()->json([
                     'status'    =>  true,
@@ -89,7 +132,7 @@ class MemberController extends Controller
                 Auth::guard('member')->logout();
                 return response()->json([
                     'status'    =>  false,
-                    'message'   =>  'Vui lòng kiểm tra email!'
+                    'message'   =>  'Tài Khoản đã bị khóa,vui lòng thử lại sau!'
                 ]);
             }
         } else {
@@ -99,6 +142,27 @@ class MemberController extends Controller
             ]);
         }
     }
+    public function changePassword(ChangePasswordRequest $request, $id)
+    {
+        $member = Member::findOrFail($id);
+    
+        Log::debug('Current Password (input): ' . $request->current_password);
+        Log::debug('Stored Password: ' . $member->password);
+        
+        if (!Hash::check($request->current_password, $member->password)) {
+            return response()->json(['message' => 'Mật khẩu hiện tại không đúng.'], 400);
+        }
+    
+        if (Hash::check($request->new_password, $member->password)) {
+            return response()->json(['message' => 'Mật khẩu mới không được giống mật khẩu hiện tại.']);
+        }
+    
+        $member->password = Hash::make($request->new_password);
+        $member->save();
+    
+        return response()->json(['message' => 'Đổi mật khẩu thành công.']);
+    }
+    
 
     public function kiemTraToken(Request $request)
     {

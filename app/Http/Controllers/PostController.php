@@ -19,9 +19,8 @@ class PostController extends Controller
     }
     public function getPostById($id)
     {
-        // Lấy bài viết theo id và thông tin member
-        $post = Post::with('association:id,registrant_name', 'category:id,category_name')->findOrFail($id);
-
+        $post = Post::with('association:id,registrant_name,avatar,company_name', 'category:id,category_name')->findOrFail($id);
+                        
         return response()->json([
             'post' => $post
         ]);
@@ -54,6 +53,28 @@ class PostController extends Controller
             'message'   =>  'Đã cập nhật bài viết thành công!'
         ]);
     }
+    public function getTotalPosts()
+    {
+        $totalPosts = Post::count();
+
+        return response()->json([
+            'status' => true,
+            'total_posts' => $totalPosts,
+            'message' => 'Tổng số lượng bài viết'
+        ]);
+    }
+    public function xemBaiViet($id)
+    {
+        $post = Post::find($id);
+        if (!$post) {
+            return response()->json(['message' => 'Bài viết không tồn tại']);
+        }
+        $post->increment('view');
+        return response()->json([
+            'message' => 'Lượt xem đã được cập nhật',
+            'view' => $post->view,
+        ]);
+    }
     public function latest()
     {
         $latestPost = Post::orderBy('created_at', 'desc')->first();
@@ -65,11 +86,35 @@ class PostController extends Controller
             ]);
         }
     }
+    public function getTopPostsExcludingCurrent($id)
+    {
+    
+        $currentPost = Post::findOrFail($id);
+        $topPosts = Post::where('category_id', $currentPost->category_id)
+                        ->where('id', '!=', $id)
+                        ->orderBy('view', 'desc')
+                        ->take(3)                 
+                        ->get();
+
+        return response()->json($topPosts);
+    }
     public function search(Request $request)
     {
         $query = $request->input('q');
-
+        $query = str_replace(' ', '%', $query);
         $posts = Post::where('title', 'LIKE', "%{$query}%")->get();
+
+        return response()->json($posts, 200);
+    }
+    public function recommend(Request $request)
+    {
+        $query = $request->input('q');
+        $query = str_replace(' ', '%', $query);
+
+        $posts = Post::where('title', 'LIKE', "%{$query}%")
+            ->select('id', 'title')
+            ->take(3)
+            ->get();
 
         return response()->json($posts, 200);
     }
@@ -91,24 +136,22 @@ class PostController extends Controller
         return response()->json($latestPosts);
     }
 
-    public function truyCapWeb()
-{
-    // Tìm bản ghi trong bảng tracking (giả sử có một bản ghi cho toàn bộ lượt truy cập)
-    $tracking = Tracking::first();
-
-    // Nếu không có bản ghi, tạo mới
-    if (!$tracking) {
-        $tracking = Tracking::create(['visit_count' => 0]);
+    public function getPostsByMember($member_id)
+    {
+        $posts = Post::with([
+            'association:id,registrant_name',
+            'category:id,category_name',
+        ])
+        ->where('member_id', $member_id)
+        ->get();
+    
+        return response()->json(['posts' => $posts]);
     }
+    public function getLatestPosts()
+    {
+        $latestPosts = Post::orderBy('created_at', 'desc')->take(5)->get();
 
-    // Tăng số lượt truy cập lên 1
-    $tracking->increment('visit_count');
-
-    // Trả về phản hồi
-    return response()->json([
-        'status' => true,
-        'message' => 'Số lượt truy cập đã được cập nhật.',
-        'visit_count' => $tracking->visit_count + 1 // Trả về số lượt truy cập vừa tăng
-    ]);
-}
+        return response()->json($latestPosts);
+    }
+    
 }

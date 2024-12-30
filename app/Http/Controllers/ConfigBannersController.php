@@ -29,11 +29,10 @@ class ConfigBannersController extends Controller
 
     public function getTopBanners()
     {
-        // Lấy 3 banner có mức độ ưu tiên 1, 2, và 3
         $banners = ConfigBanners::where('is_open', 1)
-            ->whereIn('priority', [1, 2, 3]) // Lọc theo mức độ ưu tiên
-            ->orderBy('priority', 'asc') // Sắp xếp theo mức độ ưu tiên từ thấp đến cao
-            ->take(3) // Lấy tối đa 3 banner
+            ->whereIn('priority', [1, 2, 3])
+            ->orderBy('priority', 'asc')
+            ->take(3)
             ->get();
 
         return response()->json([

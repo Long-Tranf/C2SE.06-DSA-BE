@@ -36,9 +36,8 @@ class CategoriesController extends Controller
     // lấy danh mục con bằng ID của danh mục cha
     public function getChildCategories($parentId)
     {
-        // Lấy tất cả danh mục con dựa trên ID của danh mục cha
         $childCategories = Categories::where('parent_category_id', $parentId)
-            ->select('id', 'name') // Giả sử tên trường là 'name'
+            ->select('id', 'category_name')
             ->get();
 
         if ($childCategories->isEmpty()) {

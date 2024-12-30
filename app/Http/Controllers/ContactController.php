@@ -44,4 +44,15 @@ class ContactController extends Controller
             'message'   =>  'Đã cập nhật liên hệ thành công!'
         ]);
     }
+    public function getTotalContactsToday()
+    {
+        $totalContactsToday = Contact::whereDate('created_at', now()->toDateString())->count();
+    
+        return response()->json([
+            'status' => true,
+            'total_contacts_today' => $totalContactsToday,
+            'message' => 'Tổng số lượng góp ý hôm nay'
+        ]);
+    }
+    
 }
